@@ -1,0 +1,11 @@
+Source: linuxmuster-mrbs-manager
+Section: unknown
+Priority: extra
+Maintainer: Frank Schiebel <frank@linuxmuster.net>
+Build-Depends: debhelper (>= 8.0.0)
+Standards-Version: 3.9.2
+
+Package: linuxmuster-mrbs-manager
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Manages severeal instances of the mrbs Meeting Room Booking System

@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Original mrbs Quellen
+MRBS_SRC="/usr/share/linuxmuster-mrbs-manager/src/mrbs-1.4.11"
+# Basisverzeichnis für alle mrbs Instanzen
+MRBS_WEB_BASE="/var/www/linuxmuster-mrbs/"
+# Präfix für alle mrbs Datenbanken
+MRBS_DB_PREFIX="mrbs"
+# Benutzer, der auf alle DBs mit dem obigen Präfix operieren 
+# darf
+MRBS_DB_USER="mrbsuser"
+
+print_help () {
+echo "Aufruf:"
+echo "  $0 <Instanzname> <DB-Name>"
+echo 
+echo "Instanzname: Webroot Name, z.B. ka-plan"
+echo "  Die mrbs-Instanz steht dann unter https://<server>/ka-plan"
+echo "  zur Verfügung"
+echo "DB-Name: Name der InstanzDB, ohne Präfix, z.B. kaplan"
+echo "  Die mrbs-Instanz verwendet dann die DB ${MRBS_DB_PREFIX}_kaplan"
+echo 
+exit 0
+}
+
+
+[ "x$1" != "x" ] || print_help;
+[ "x$2" != "x" ] || print_help;
+
+# Name der einzurichtenden Instanz: Erstes Argument
+MRBS_NAME=$1
+# Datenbank für die einzurichtende Instanz
+# Zweites Argument
+MRBS_DB_NAME=${MRBS_DB_PREFIX}_$2
+# Zielverzeichnis für die neue Installation
+TARGET_DIR=${MRBS_WEB_BASE}${MRBS_NAME}
+
+for user in $(echo 'use mysql; select User from user where User = "mrbsadmin";'  | mysql | grep -v "^User$"); do
+	echo $user
+done
+
+if [ -d $TARGET_DIR ]; then 
+	echo "Das Verzeichnis $TARGET_DIR"
+	echo "existiert bereits."
+	print_help
+fi
+
+for db in $(echo "show databases;" | mysql | grep $MRBS_DB_PREFIX); do
+	if [ $db == $MRBS_DB_NAME ]; then 
+		echo "$MRBS_DB_NAME existiert schon"
+		print_help
+	fi
+done
+
+
+create_fresh_db (){
+# Datenbank anlegen
+mysqladmin create $MRBS_DB_NAME || exit 1
+# DB füllen
+mysql $MRBS_DB_NAME < "$MRBS_SRC/tables.my.sql"
+}
+
+create_new_webroot () {
+mkdir -p $MRBS_WEB_BASE
+cp -r $MRBS_SRC/web $MRBS_WEB_BASE$MRBS_NAME
+}
+
+create_new_webroot
+create_fresh_db
