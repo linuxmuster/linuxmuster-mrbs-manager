@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Original mrbs Quellen
-MRBS_SRC="/usr/share/linuxmuster-mrbs-manager/src/mrbs-1.4.11"
-# Basisverzeichnis für alle mrbs Instanzen
-MRBS_WEB_BASE="/var/www/linuxmuster-mrbs/"
-# Präfix für alle mrbs Datenbanken
-MRBS_DB_PREFIX="mrbs"
-# Benutzer, der auf alle DBs mit dem obigen Präfix operieren 
-# darf
-MRBS_DB_USER="mrbsuser"
+# Source config or die
+. /etc/linuxmuster-mrbs-manager/config || exit 1
+
+
+# Passwort erzeugen, wenn nötig
+if [ $MRBS_DB_PASS == "GENERATE" ]; then 
+	MRBS_DB_PASS=$(pwgen -n 22 1)
+	sed -i "s/GENERATE/$MRBS_DB_PASS/" /etc/linuxmuster-mrbs-manager/config
+fi
 
 print_help () {
 echo "Aufruf:"
@@ -23,7 +23,6 @@ echo
 exit 0
 }
 
-
 [ "x$1" != "x" ] || print_help;
 [ "x$2" != "x" ] || print_help;
 
@@ -34,10 +33,6 @@ MRBS_NAME=$1
 MRBS_DB_NAME=${MRBS_DB_PREFIX}_$2
 # Zielverzeichnis für die neue Installation
 TARGET_DIR=${MRBS_WEB_BASE}${MRBS_NAME}
-
-for user in $(echo 'use mysql; select User from user where User = "mrbsadmin";'  | mysql | grep -v "^User$"); do
-	echo $user
-done
 
 if [ -d $TARGET_DIR ]; then 
 	echo "Das Verzeichnis $TARGET_DIR"
@@ -53,17 +48,34 @@ for db in $(echo "show databases;" | mysql | grep $MRBS_DB_PREFIX); do
 done
 
 
+
 create_fresh_db (){
-# Datenbank anlegen
-mysqladmin create $MRBS_DB_NAME || exit 1
+# Datenbankbenutzer anlegen/Passwort setzen
+SQL="grant usage on *.* to ${MRBS_DB_USER}@localhost identified by \"${MRBS_DB_PASS}\";"
+SQL=$SQL"create database ${MRBS_DB_NAME};"
+SQL=$SQL"GRANT ALL PRIVILEGES ON ${MRBS_DB_NAME}.* TO ${MRBS_DB_USER}@localhost  IDENTIFIED BY \"${MRBS_DB_PASS}\";"
+SQL=$SQL"flush privileges;"
+mysql -u root << EOMYSQL
+$SQL
+EOMYSQL
 # DB füllen
 mysql $MRBS_DB_NAME < "$MRBS_SRC/tables.my.sql"
 }
 
 create_new_webroot () {
 mkdir -p $MRBS_WEB_BASE
-cp -r $MRBS_SRC/web $MRBS_WEB_BASE$MRBS_NAME
+cp -r $MRBS_SRC/web $TARGET_DIR
+}
+
+patch_config() {
+CFILE="$TARGET_DIR/config.inc.php"
+echo $CFILE
+sed -i "s/\(\$db_login.*=\s*\).*;/\1\"$MRBS_DB_USER\";/" $CFILE
+sed -i "s/\(\$db_password.*=\s*\).*;/\1\"$MRBS_DB_PASS\";/" $CFILE
+sed -i "s/\(\$db_database.*=\s*\).*;/\1\"$MRBS_DB_NAME\";/" $CFILE
 }
 
 create_new_webroot
 create_fresh_db
+patch_config
+

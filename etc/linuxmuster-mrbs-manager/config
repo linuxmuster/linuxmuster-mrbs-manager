@@ -1,0 +1,14 @@
+# bash-style config file for
+# linuxmuster-mrbs-manager
+
+# Original mrbs Quellen
+MRBS_SRC="/usr/share/linuxmuster-mrbs-manager/src/mrbs-1.4.11"
+# Basisverzeichnis für alle mrbs Instanzen
+MRBS_WEB_BASE="/var/www/linuxmuster-mrbs/"
+# Präfix für alle mrbs Datenbanken
+MRBS_DB_PREFIX="mrbs"
+# Benutzer, der auf alle DBs mit dem obigen Präfix operieren 
+# darf
+MRBS_DB_USER="mrbsuser"
+MRBS_DB_PASS="GENERATE"
+

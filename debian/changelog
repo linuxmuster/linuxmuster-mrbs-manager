@@ -1,5 +1,11 @@
-linuxmuster-mrbs-manager (0.1-mrbs1.4.11) unstable; urgency=low
+linuxmuster-mrbs-manager (0.1.2-mrbs1.4.11) unstable; urgency=low
 
-  * Start
+  * LDAP Auth für linuxmuster.net
 
- -- Frank Schiebel <frank@linuxmuster.net>  Thu, 08. Sep 2014 13:10:00 +0100
+ -- Frank Schiebel <frank@linuxmuster.net>  Tue, 09 Sep 2014 16:52:52 +0200
+
+linuxmuster-mrbs-manager (0.1.1-mrbs1.4.11) unstable; urgency=low
+
+  * Konfigurationsdatei
+
+ -- Frank Schiebel <frank@linuxmuster.net>  Thu, 08 Sep 2014 13:10:00 +0100
