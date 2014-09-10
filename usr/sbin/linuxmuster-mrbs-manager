@@ -65,15 +65,20 @@ for db in $(echo "show databases;" | mysql | grep $MRBS_DB_PREFIX); do
 	fi
 done
 
-create_fresh_db (){
+execute_sql() {
+# Keine Einrückung, here-doc
+mysql -u root << EOMYSQL
+$1
+EOMYSQL
+}
+
+create_fresh_db () {
     # Datenbankbenutzer anlegen/Passwort setzen
     SQL="grant usage on *.* to ${MRBS_DB_USER}@localhost identified by \"${MRBS_DB_PASS}\";"
     SQL=$SQL"create database ${MRBS_DB_NAME};"
     SQL=$SQL"GRANT ALL PRIVILEGES ON ${MRBS_DB_NAME}.* TO ${MRBS_DB_USER}@localhost  IDENTIFIED BY \"${MRBS_DB_PASS}\";"
     SQL=$SQL"flush privileges;"
-    mysql -u root << EOMYSQL
-    $SQL
-    EOMYSQL
+    execute_sql($SQL)
     # DB füllen
     mysql $MRBS_DB_NAME < "$MRBS_SRC/tables.my.sql"
 }
