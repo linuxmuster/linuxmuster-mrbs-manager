@@ -3,7 +3,6 @@
 # Source config or die
 . /etc/linuxmuster-mrbs-manager/config || exit 1
 
-
 # Passwort erzeugen, wenn nötig
 if [ $MRBS_DB_PASS == "GENERATE" ]; then 
 	MRBS_DB_PASS=$(pwgen -n 22 1)
@@ -11,26 +10,45 @@ if [ $MRBS_DB_PASS == "GENERATE" ]; then
 fi
 
 print_help () {
-echo "Aufruf:"
-echo "  $0 <Instanzname> <DB-Name>"
-echo 
-echo "Instanzname: Webroot Name, z.B. ka-plan"
-echo "  Die mrbs-Instanz steht dann unter https://<server>/ka-plan"
-echo "  zur Verfügung"
-echo "DB-Name: Name der InstanzDB, ohne Präfix, z.B. kaplan"
-echo "  Die mrbs-Instanz verwendet dann die DB ${MRBS_DB_PREFIX}_kaplan"
-echo 
-exit 0
+    echo "Aufruf:"
+    echo "  $0 -a <aktion> -n <Instanzname> -d <DB-Name>"
+    echo 
+    echo "Aktion: new|update|migrate|status"
+    echo "  - new    : erzeugt eine neue MRBS-Instanz"
+    echo "  - update : aktualisiert eine MRBS-Instanz"
+    echo "  - migrate: migriert eine MRBS-Instanz aus dem alten Paket"
+    echo "  - status : zeigt alle von diesem Paket verwaltete MRBS-Instanzen an"
+    echo 
+    echo "Instanzname: Webroot Name, z.B. ka-plan"
+    echo "  Die mrbs-Instanz steht dann unter https://<server>/ka-plan"
+    echo "  zur Verfügung"
+    echo "DB-Name: Name der InstanzDB, ohne Präfix, z.B. kaplan"
+    echo "  Die mrbs-Instanz verwendet dann die DB ${MRBS_DB_PREFIX}_kaplan"
+    echo 
+    exit 0
 }
 
-[ "x$1" != "x" ] || print_help;
-[ "x$2" != "x" ] || print_help;
+while getopts ":a:n:d:" opt; do
+case $opt in
+    a)
+    ACTION=$OPTARG
+    ;;
+    n)
+    MRBS_NAME=$OPTARG
+    ;;
+    d)
+    MRBS_DB_NAME=$OPTARG
+    ;;
+    \?)
+    print_help
+    ;;
+esac
+done
 
-# Name der einzurichtenden Instanz: Erstes Argument
-MRBS_NAME=$1
-# Datenbank für die einzurichtende Instanz
-# Zweites Argument
-MRBS_DB_NAME=${MRBS_DB_PREFIX}_$2
+[ "x$ACTION" != "x" ] || print_help;
+[ "x$MRBS_NAME" != "x" ] || print_help;
+[ "x$MRBS_DB_NAME" != "x" ] || print_help;
+
 # Zielverzeichnis für die neue Installation
 TARGET_DIR=${MRBS_WEB_BASE}${MRBS_NAME}
 
@@ -47,35 +65,58 @@ for db in $(echo "show databases;" | mysql | grep $MRBS_DB_PREFIX); do
 	fi
 done
 
-
-
 create_fresh_db (){
-# Datenbankbenutzer anlegen/Passwort setzen
-SQL="grant usage on *.* to ${MRBS_DB_USER}@localhost identified by \"${MRBS_DB_PASS}\";"
-SQL=$SQL"create database ${MRBS_DB_NAME};"
-SQL=$SQL"GRANT ALL PRIVILEGES ON ${MRBS_DB_NAME}.* TO ${MRBS_DB_USER}@localhost  IDENTIFIED BY \"${MRBS_DB_PASS}\";"
-SQL=$SQL"flush privileges;"
-mysql -u root << EOMYSQL
-$SQL
-EOMYSQL
-# DB füllen
-mysql $MRBS_DB_NAME < "$MRBS_SRC/tables.my.sql"
+    # Datenbankbenutzer anlegen/Passwort setzen
+    SQL="grant usage on *.* to ${MRBS_DB_USER}@localhost identified by \"${MRBS_DB_PASS}\";"
+    SQL=$SQL"create database ${MRBS_DB_NAME};"
+    SQL=$SQL"GRANT ALL PRIVILEGES ON ${MRBS_DB_NAME}.* TO ${MRBS_DB_USER}@localhost  IDENTIFIED BY \"${MRBS_DB_PASS}\";"
+    SQL=$SQL"flush privileges;"
+    mysql -u root << EOMYSQL
+    $SQL
+    EOMYSQL
+    # DB füllen
+    mysql $MRBS_DB_NAME < "$MRBS_SRC/tables.my.sql"
 }
 
 create_new_webroot () {
-mkdir -p $MRBS_WEB_BASE
-cp -r $MRBS_SRC/web $TARGET_DIR
+    mkdir -p $MRBS_WEB_BASE
+    cp -r $MRBS_SRC/web $TARGET_DIR
+    cp -r $MRBS_PATCHES/web/* $TARGET_DIR
+    cp $MRBS_APACHECFG /etc/linuxmuster-mrbs-manager/${MRBS_NAME}_apache.conf
+    ln -s /etc/linuxmuster-mrbs-manager/${MRBS_NAME}_apache.conf /etc/apache2/conf.d/${MRBS_NAME}_apache.conf
 }
 
 patch_config() {
-CFILE="$TARGET_DIR/config.inc.php"
-echo $CFILE
-sed -i "s/\(\$db_login.*=\s*\).*;/\1\"$MRBS_DB_USER\";/" $CFILE
-sed -i "s/\(\$db_password.*=\s*\).*;/\1\"$MRBS_DB_PASS\";/" $CFILE
-sed -i "s/\(\$db_database.*=\s*\).*;/\1\"$MRBS_DB_NAME\";/" $CFILE
+    # patch mrbs config
+    CFILE="$TARGET_DIR/config.inc.php"
+    echo $CFILE
+    sed -i "s/\(\$db_login.*=\s*\).*;/\1\"$MRBS_DB_USER\";/" $CFILE
+    sed -i "s/\(\$db_password.*=\s*\).*;/\1\"$MRBS_DB_PASS\";/" $CFILE
+    sed -i "s/\(\$db_database.*=\s*\).*;/\1\"$MRBS_DB_NAME\";/" $CFILE
+    # patch and link apache config
+    CFILE="/etc/linuxmuster-mrbs-manager/${MRBS_NAME}_apache.conf"
+    sed -i "s/\#\#\#MRBS_NAME\#\#\#/$MRBS_NAME/g" $CFILE
+    sed -i "s/\#\#\#TARGET_DIR\#\#\#/$TARGET_DIR/g" $CFILE
 }
 
-create_new_webroot
-create_fresh_db
-patch_config
+
+case $ACTION in
+new)
+    create_new_webroot
+    create_fresh_db
+    patch_config
+    ;;
+status)
+    echo "Noch nicht implementiert :("
+    ;;
+migrate)
+    echo "Noch nicht implementiert :("
+    ;;
+update)
+    echo "Noch nicht implementiert :("
+    ;;
+    *)
+    print_help
+    ;;
+esac
 

@@ -51,7 +51,7 @@ $db_host = "localhost";
 // can uncomment the following line and specify the port number
 // $db_port = 1234;
 // Database name:
-$db_database = "mrbs_kaplan";
+$db_database = "mrbs_kaplaner";
 // Schema name.  This only applies to PostgreSQL and is only necessary if you have more
 // than one schema in your database and also you are using the same MRBS table names in
 // multiple schemas.
@@ -59,7 +59,7 @@ $db_database = "mrbs_kaplan";
 // Database login user name:
 $db_login = "mrbsuser";
 // Database login password:
-$db_password = "yahchaap2puzooyoh0thi2";
+$db_password = "daspasswort";
 // Prefix for table names.  This will allow multiple installations where only
 // one database is available
 $db_tbl_prefix = "mrbs_";
@@ -71,18 +71,109 @@ $db_tbl_prefix = "mrbs_";
    to change the default configuration. Do _NOT_ modify systemdefaults.inc.php
    or areadefaults.inc.php.  */
 
+// Theme wählen
+$theme = "default";
+
+// Bezeichnungen anpassen
+$vocab_override['de']['mrbs'] = "Raumbuchung";
+$vocab_override['de']['areas'] = "Bereiche";
+$vocab_override['de']['rooms'] = "Räume";
+$vocab_override['de']['period'] = "Stunde";
+$vocab_override['de']['periods'] = "Stunden";
+
+// Vorschlag: Klassenarbeitsplaner
+//$vocab_override['de']['mrbs'] = "Klassenarbeitsplaner";
+//$vocab_override['de']['areas'] = "Stufen";
+//$vocab_override['de']['rooms'] = "Klassen";
+//$vocab_override['de']['period'] = "Stunde";
+//$vocab_override['de']['periods'] = "Stunden";
+
+
+// The company name is mandatory.   It is used in the header and also for email notifications.
+// The company logo, additional information and URL are all optional.
+
+$mrbs_company = "Superschule";   // This line must always be uncommented ($mrbs_company is used in various places)
+
+// Uncomment this next line to use a logo instead of text for your organisation in the header
+//$mrbs_company_logo = "your_logo.gif";    // name of your logo file.   This example assumes it is in the MRBS directory
+
+// Uncomment this next line for supplementary information after your company name or logo
+//$mrbs_company_more_info = "You can put additional information here";  // e.g. "XYZ Department"
+
+// Uncomment this next line to have a link to your organisation in the header
+//$mrbs_company_url = "http://www.your_organisation.com/";
+
+
+// General settings
+// If you want only administrators to be able to make and delete bookings,
+// set this variable to TRUE
+$auth['only_admin_can_book'] = FALSE;
+// If you want only administrators to be able to make repeat bookings,
+// set this variable to TRUE
+$auth['only_admin_can_book_repeat'] = FALSE;
+// If you want only administrators to be able to make bookings spanning
+// more than one day, set this variable to TRUE.
+$auth['only_admin_can_book_multiday'] = FALSE;
+// If you want only administrators to be able to select multiple rooms
+// on the booking form then set this to TRUE.  (It doesn't stop ordinary users
+// making separate bookings for the same time slot, but it does slow them down).
+$auth['only_admin_can_select_multiroom'] = FALSE;
+// If you don't want ordinary users to be able to see the other users'
+// details then set this to TRUE.  (Only relevant when using 'db' authentication]
+$auth['only_admin_can_see_other_users'] = FALSE;
+// If you want to prevent the public (ie un-logged in users) from
+// being able to view bookings, set this variable to TRUE
+$auth['deny_public_access'] = TRUE;
+// Set to TRUE if you want admins to be able to perform bulk deletions
+// on the Report page.  (It also only shows up if JavaScript is enabled)
+$auth['show_bulk_delete'] = FALSE;
+
 unset($auth["admin"]);              // Include this when copying to config.inc.php
 $auth["admin"][] = "administrator"; 
 #$auth["admin"][] = "andererbenutzer"; 
 #$auth["admin"][] = "andererbenutzer"; 
 #$auth["admin"][] = "andererbenutzer"; 
 
-$auth["type"] = "linuxmuster"; // How to validate the user/password. One of "none"
-                        // "config" "db" "db_ext" "pop3" "imap" "ldap" "nis"
-                        // "nw" "ext".
-
-
+// How to validate the user/password. One of "none"
+// "config" "db" "db_ext" "pop3" "imap" "ldap" "nis"
+// "nw" "ext" "linuxmuster"
+// linuxmuster ist eine modifiziere LDAP Auth, die die Variable 
+// $ldap_accessgroups auswertet (s.u.)
+$auth["type"] = "linuxmuster"; 
+// Midglieder dieser Gruppen können sich am MRBS anmelden
 $ldap_accessgroups = array("teachers","p_mrbs");
+
+// Wochenstart Montags 
+$weekstarts = 1;
+// Samstag und Sonntag verstecken
+$hidden_days = array("6","0");
+
+// should areas be shown as a list or a drop-down select box?
+$area_list_format = "list";
+//$area_list_format = "select";
+
+// Define default starting view (month, week or day)
+// Default is day
+$default_view = "week";
+
+// Damit die Stundeneinteilung verwendet wird, muss in der 
+// Weboberfläche der Modus für den entsprechenden Raumbereich auf 
+// "series" gestellt werden. 
+unset($periods); 
+$periods[] = "[1]  07:30-08:15";
+$periods[] = "[2]  08:20-09:05";
+$periods[] = "[3]  09:10-10:55";
+$periods[] = "[P]  Grosse Pause";
+$periods[] = "[4]  10:10-10:55";
+$periods[] = "[5]  11:00-11:45";
+$periods[] = "[6]  11:50-12:35";
+$periods[] = "[P]  Mittagspause";
+$periods[] = "[7]  14:00-14:45";
+$periods[] = "[8]  14:50-15:35";
+$periods[] = "[P]  Wechselpause";
+$periods[] = "[9]  15:45-16:30";
+$periods[] = "[10] 16:35-17:20";
+
 
 // 'auth_ldap' configuration settings
 

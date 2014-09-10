@@ -2,13 +2,18 @@
 # linuxmuster-mrbs-manager
 
 # Original mrbs Quellen
-MRBS_SRC="/usr/share/linuxmuster-mrbs-manager/src/mrbs-1.4.11"
+MRBS_SRC="/var/lib/linuxmuster-mrbs-manager/src/mrbs-1.4.11"
+# Patches für  linuxmuster.net
+MRBS_PATCHES="/var/lib/linuxmuster-mrbs-manager/patched/mrbs-1.4.11"
+# apache config Vorlage
+MRBS_APACHECFG="/var/lib/linuxmuster-mrbs-manager/apache/apacheconf.tpl"
 # Basisverzeichnis für alle mrbs Instanzen
 MRBS_WEB_BASE="/var/www/linuxmuster-mrbs/"
-# Präfix für alle mrbs Datenbanken
+# Präfix für alle mrbs Datenbanken (ohne _ am Ende)
+# mrbs ergibt Datenbanken der Form mrbs_<instanzname>
 MRBS_DB_PREFIX="mrbs"
 # Benutzer, der auf alle DBs mit dem obigen Präfix operieren 
-# darf
+# darf. Wird wenn nötig angelegt
 MRBS_DB_USER="mrbsuser"
 MRBS_DB_PASS="GENERATE"
 
