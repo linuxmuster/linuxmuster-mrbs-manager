@@ -36,37 +36,6 @@
 $timezone = "Europe/Berlin";
 
 
-/*******************
- * Database settings
- ******************/
-// Which database system: "pgsql"=PostgreSQL, "mysql"=MySQL,
-// "mysqli"=MySQL via the mysqli PHP extension
-$dbsys = "mysqli";
-// Hostname of database server. For pgsql, can use "" instead of localhost
-// to use Unix Domain Sockets instead of TCP/IP. For mysql/mysqli "localhost"
-// tells the system to use Unix Domain Sockets, and $db_port will be ignored;
-// if you want to force TCP connection you can use "127.0.0.1".
-$db_host = "localhost";
-// If you need to use a non standard port for the database connection you
-// can uncomment the following line and specify the port number
-// $db_port = 1234;
-// Database name:
-$db_database = "mrbs_kaplaner";
-// Schema name.  This only applies to PostgreSQL and is only necessary if you have more
-// than one schema in your database and also you are using the same MRBS table names in
-// multiple schemas.
-//$db_schema = "public";
-// Database login user name:
-$db_login = "mrbsuser";
-// Database login password:
-$db_password = "daspasswort";
-// Prefix for table names.  This will allow multiple installations where only
-// one database is available
-$db_tbl_prefix = "mrbs_";
-// Uncomment this to NOT use PHP persistent (pooled) database connections:
-// $db_nopersist = 1;
-
-
 /* Add lines from systemdefaults.inc.php and areadefaults.inc.php below here
    to change the default configuration. Do _NOT_ modify systemdefaults.inc.php
    or areadefaults.inc.php.  */
@@ -87,6 +56,44 @@ $vocab_override['de']['periods'] = "Stunden";
 //$vocab_override['de']['rooms'] = "Klassen";
 //$vocab_override['de']['period'] = "Stunde";
 //$vocab_override['de']['periods'] = "Stunden";
+
+/*************
+ * Entry Types
+ *************/
+
+// This array lists the configured entry type codes. The values map to a
+// single char in the MRBS database, and so can be any permitted PHP array
+// character.
+//
+// The default descriptions of the entry types are held in the language files
+// as "type.X" where 'X' is the entry type.  If you want to change the description
+// you can override the default descriptions by setting the $vocab_override config
+// variable.   For example, if you add a new booking type 'C' the minimum you need
+// to do is add a line to config.inc.php like:
+// 
+// $vocab_override["en"]["type.C"] =     "New booking type";
+//
+// Below is a basic default array which ensures there are at least some types defined.
+// The proper type definitions should be made in config.inc.php.
+//
+// Each type has a color which is defined in the array $color_types in the styling.inc
+// file in the Themes directory
+
+unset($booking_types);
+$booking_types[] = "E";
+$booking_types[] = "I";
+$booking_types[] = "F";
+$vocab_override["de"]["type.E"] = "Extern";
+$vocab_override["de"]["type.I"] = "Intern";
+$vocab_override["de"]["type.F"] = "Wartung/Blockiert";
+
+// Vorschlag: Klassenarbeitsplaner
+//$vocab_override["de"]["type.E"] = "Klassenarbeit";
+//$vocab_override["de"]["type.I"] = "Test";
+//$vocab_override["de"]["type.F"] = "Ferien/Blockiert";
+
+// Default type for new bookings
+$default_type = "I";
 
 
 // The company name is mandatory.   It is used in the header and also for email notifications.
@@ -264,4 +271,36 @@ $ldap_unbind_between_attempts = FALSE;
 
 // Output debugging information for LDAP actions
 $ldap_debug = FALSE;
+
+
+/*******************
+ * Database settings
+ ******************/
+// Which database system: "pgsql"=PostgreSQL, "mysql"=MySQL,
+// "mysqli"=MySQL via the mysqli PHP extension
+$dbsys = "mysqli";
+// Hostname of database server. For pgsql, can use "" instead of localhost
+// to use Unix Domain Sockets instead of TCP/IP. For mysql/mysqli "localhost"
+// tells the system to use Unix Domain Sockets, and $db_port will be ignored;
+// if you want to force TCP connection you can use "127.0.0.1".
+$db_host = "localhost";
+// If you need to use a non standard port for the database connection you
+// can uncomment the following line and specify the port number
+// $db_port = 1234;
+// Database name:
+$db_database = "mrbs_kaplaner";
+// Schema name.  This only applies to PostgreSQL and is only necessary if you have more
+// than one schema in your database and also you are using the same MRBS table names in
+// multiple schemas.
+//$db_schema = "public";
+// Database login user name:
+$db_login = "mrbsuser";
+// Database login password:
+$db_password = "daspasswort";
+// Prefix for table names.  This will allow multiple installations where only
+// one database is available
+$db_tbl_prefix = "mrbs_";
+// Uncomment this to NOT use PHP persistent (pooled) database connections:
+// $db_nopersist = 1;
+
 

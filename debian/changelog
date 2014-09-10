@@ -1,3 +1,10 @@
+linuxmuster-mrbs-manager (0.2.2-mrbs1.4.11) unstable; urgency=low
+
+  * edit_entry* gepatched, so dass der Benutzername mit eingebunden wird
+  * Configvorlage um Buchungsarten ergänzt
+
+ -- Frank Schiebel <frank@linuxmuster.net>  Wed, 10 Sep 2014 17:53:30 +0200
+
 linuxmuster-mrbs-manager (0.2.1-mrbs1.4.11) unstable; urgency=low
 
   * LDAP Auth für linuxmuster.net
