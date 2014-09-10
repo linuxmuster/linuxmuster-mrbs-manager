@@ -9,6 +9,8 @@ if [ $MRBS_DB_PASS == "GENERATE" ]; then
 	sed -i "s/GENERATE/$MRBS_DB_PASS/" /etc/linuxmuster-mrbs-manager/config
 fi
 
+LDAP_BASEDN=$(grep basedn /var/lib/linuxmuster/network.settings | awk -F"basedn=" '{print $2}' | sed 's/"//g')
+
 print_help () {
     echo "Aufruf:"
     echo "  $0 -a <aktion> -n <Instanzname> -d <DB-Name>"
@@ -78,7 +80,7 @@ create_fresh_db () {
     SQL=$SQL"create database ${MRBS_DB_NAME};"
     SQL=$SQL"GRANT ALL PRIVILEGES ON ${MRBS_DB_NAME}.* TO ${MRBS_DB_USER}@localhost  IDENTIFIED BY \"${MRBS_DB_PASS}\";"
     SQL=$SQL"flush privileges;"
-    execute_sql $SQL
+    execute_sql "$SQL"
     # DB füllen
     mysql $MRBS_DB_NAME < "$MRBS_SRC/tables.my.sql"
 }
@@ -88,20 +90,21 @@ create_new_webroot () {
     cp -r $MRBS_SRC/web $TARGET_DIR
     cp -r $MRBS_PATCHES/web/* $TARGET_DIR
     cp $MRBS_APACHECFG /etc/linuxmuster-mrbs-manager/${MRBS_NAME}_apache.conf
+    [ -L /etc/apache2/conf.d/${MRBS_NAME}_apache.conf ] && rm /etc/apache2/conf.d/${MRBS_NAME}_apache.conf
     ln -s /etc/linuxmuster-mrbs-manager/${MRBS_NAME}_apache.conf /etc/apache2/conf.d/${MRBS_NAME}_apache.conf
 }
 
 patch_config() {
     # patch mrbs config
     CFILE="$TARGET_DIR/config.inc.php"
-    echo $CFILE
     sed -i "s/\(\$db_login.*=\s*\).*;/\1\"$MRBS_DB_USER\";/" $CFILE
     sed -i "s/\(\$db_password.*=\s*\).*;/\1\"$MRBS_DB_PASS\";/" $CFILE
     sed -i "s/\(\$db_database.*=\s*\).*;/\1\"$MRBS_DB_NAME\";/" $CFILE
+    sed -i "s/\(\$ldap_base_dn\s*[^=]\)=.*;/\1= \"$LDAP_BASEDN\";/" $CFILE
     # patch and link apache config
     CFILE="/etc/linuxmuster-mrbs-manager/${MRBS_NAME}_apache.conf"
-    sed -i "s/\#\#\#MRBS_NAME\#\#\#/$MRBS_NAME/g" $CFILE
-    sed -i "s/\#\#\#TARGET_DIR\#\#\#/$TARGET_DIR/g" $CFILE
+    sed -i "s|###MRBS_NAME###|$MRBS_NAME|" $CFILE
+    sed -i "s|###TARGET_DIR###|$TARGET_DIR|" $CFILE
 }
 
 

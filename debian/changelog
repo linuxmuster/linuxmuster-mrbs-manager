@@ -1,9 +1,10 @@
-linuxmuster-mrbs-manager (0.2.0-mrbs1.4.11) unstable; urgency=low
+linuxmuster-mrbs-manager (0.2.1-mrbs1.4.11) unstable; urgency=low
 
   * LDAP Auth für linuxmuster.net
   * Apache config wird verlinkt
   * Skript mit Optionen
   * Konfigurationsvorlage MRBS erweitert
+  * Testing, Bugfixing...
 
  -- Frank Schiebel <frank@linuxmuster.net>  Wed, 10 Sep 2014 16:52:52 +0200
 
