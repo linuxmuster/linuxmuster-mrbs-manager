@@ -78,7 +78,7 @@ create_fresh_db () {
     SQL=$SQL"create database ${MRBS_DB_NAME};"
     SQL=$SQL"GRANT ALL PRIVILEGES ON ${MRBS_DB_NAME}.* TO ${MRBS_DB_USER}@localhost  IDENTIFIED BY \"${MRBS_DB_PASS}\";"
     SQL=$SQL"flush privileges;"
-    execute_sql($SQL)
+    execute_sql $SQL
     # DB füllen
     mysql $MRBS_DB_NAME < "$MRBS_SRC/tables.my.sql"
 }
